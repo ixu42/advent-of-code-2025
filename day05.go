@@ -12,6 +12,41 @@ type Range struct {
 	start, end int
 }
 
+func parseInput(input string) ([]Range, []int, error) {
+	var ranges []Range
+	var ids []int
+
+	lines := strings.Split(string(input), "\n")
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+
+		if strings.Contains(line, "-") {
+			parts := strings.Split(line, "-")
+			if len(parts) != 2 {
+				return nil, nil, fmt.Errorf("invalid range format: %s", line)
+			}
+
+			start, err1 := strconv.Atoi(parts[0])
+			end, err2 := strconv.Atoi(parts[1])
+			if err1 != nil || err2 != nil {
+				return nil, nil, fmt.Errorf("Error converting to integer:", err1, err2)
+			}
+
+			ranges = append(ranges, Range{start: start, end: end})
+		} else {
+			val, err := strconv.Atoi(line)
+			if err != nil {
+				return nil, nil, fmt.Errorf("Error converting to integer:", err)
+			}
+			ids = append(ids, val)
+		}
+	}
+
+	return ranges, ids, nil
+}
+
 func isFresh(id int, ranges []Range) bool {
 	for _, r := range ranges {
 		if id >= r.start && id <= r.end {
@@ -81,33 +116,10 @@ func main() {
         return
     }
 
-	var ranges []Range
-	var ids []int
-
-	lines := strings.Split(string(input), "\n")
-
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-
-		if strings.Contains(line, "-") {
-			parts := strings.Split(line, "-")
-			start, err1 := strconv.Atoi(parts[0])
-			end, err2 := strconv.Atoi(parts[1])
-			if err1 != nil || err2 != nil {
-				fmt.Println("Error converting to integer:", err1, err2)
-				return
-			}
-			ranges = append(ranges, Range{start: start, end: end})
-		} else {
-			val, err := strconv.Atoi(line)
-			if err != nil {
-				fmt.Println("Error converting to integer:", err)
-				return
-			}
-			ids = append(ids, val)
-		}
+	ranges, ids, err := parseInput(string(input))
+	if err != nil {
+		fmt.Println("Error parsing input:", err)
+		return
 	}
 
 	// part1
