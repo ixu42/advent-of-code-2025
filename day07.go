@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+var memo = make(map[[2]int]int)
+
 func printGrid(grid [][]rune) {
 	for _, row := range grid {
 		fmt.Println(string(row))
@@ -14,28 +16,70 @@ func printGrid(grid [][]rune) {
 
 func countSplit(grid [][]rune) int {
 	splitCount := 0
-	for i := 0; i < len(grid); i++ {
-		for j := 0; j < len(grid[i]); j++ {
-			if grid[i][j] == 'S' ||  grid[i][j] == '|' {
-				if i + 1 < len(grid) && grid[i+1][j] == '.' {
-					grid[i+1][j] = '|'
+	for r := 0; r < len(grid); r++ {
+		for c := 0; c < len(grid[r]); c++ {
+			if grid[r][c] == 'S' ||  grid[r][c] == '|' {
+				if r + 1 < len(grid) && grid[r+1][c] == '.' {
+					grid[r+1][c] = '|'
 				}
-			} else if grid[i][j] == '^' && i - 1 >= 0 && grid[i-1][j] == '|' {
+			} else if grid[r][c] == '^' && r - 1 >= 0 && grid[r-1][c] == '|' {
 				splitCount++
-				if j - 1 >= 0 && grid[i][j-1] == '.' {
-					grid[i][j-1] = '|'
-					if i + 1 < len(grid) && grid[i+1][j-1] == '.' {
-						grid[i+1][j-1] = '|'
+				if c - 1 >= 0 && grid[r][c-1] == '.' {
+					grid[r][c-1] = '|'
+					if r + 1 < len(grid) && grid[r+1][c-1] == '.' {
+						grid[r+1][c-1] = '|'
 					}
 				}
-				if j + 1 < len(grid[i]) && grid[i][j+1] == '.' {
-					grid[i][j+1] = '|'
+				if r + 1 < len(grid[r]) && grid[r][c+1] == '.' {
+					grid[r][c+1] = '|'
 				}
 			}
 		}
 	}
 	// printGrid(grid)
 	return splitCount
+}
+
+func getStartPos(grid [][]rune) (int, int) {
+	for r := 0; r < len(grid); r++ {
+		for c := 0; c < len(grid[r]); c++ {
+			if grid[r][c] == 'S' {
+				return r, c
+			}
+		}
+	}
+	fmt.Println("Start position not found")
+	return 0, 0
+}
+
+func countTimeline(r, c int, grid [][]rune) int {
+	key := [2]int{r, c}
+	val, exists := memo[key]
+	if exists {
+		return val
+	}
+
+	if r == len(grid) - 1 {
+		return 1
+	}
+
+	total := 0
+
+	if grid[r][c] == '^' {
+		if c - 1 >= 0 {
+			total += countTimeline(r, c - 1, grid)
+		}
+		if c + 1 < len(grid[r]) {
+			total += countTimeline(r, c + 1, grid)
+		}
+	} else {
+		if r + 1 < len(grid) {
+			total += countTimeline(r + 1, c, grid)
+		}
+	}
+
+	memo[key] = total
+	return total
 }
 
 func main() {
@@ -52,5 +96,10 @@ func main() {
 		grid[i] = []rune(line)
 	}
 
+	// part1
 	fmt.Println("part1:", countSplit(grid))
+
+	// part2
+	r, c := getStartPos(grid)
+	fmt.Println("part2:", countTimeline(r, c, grid))
 }
