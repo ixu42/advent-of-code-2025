@@ -76,7 +76,6 @@ func solvePart2(lines []string) int {
 	res := 0
 	grid := make([][]rune, len(lines))
 	for i, line := range lines {
-		grid[i] = make([]rune, len(line))
 		grid[i] = []rune(line)
 	}
 

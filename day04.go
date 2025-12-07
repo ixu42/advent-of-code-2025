@@ -82,7 +82,6 @@ func main() {
 
 	grid := make([][]rune, len(lines))
 	for i, line := range lines {
-		grid[i] = make([]rune, len(line))
 		grid[i] = []rune(line)
 	}
 
