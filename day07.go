@@ -12,25 +12,7 @@ func printGrid(grid [][]rune) {
 	}
 }
 
-func solvePart1(lines []string) int {
-	res := 0
-	return res
-}
-
-func main() {
-    data, err := os.ReadFile("inputs/day07.txt")
-    if err != nil {
-        fmt.Println("Error reading file:", err)
-        return
-    }
-
-	lines := strings.Split(string(data), "\n")
-
-	grid := make([][]rune, len(lines))
-	for i, line := range lines {
-		grid[i] = []rune(line)
-	}
-
+func countSplit(grid [][]rune) int {
 	splitCount := 0
 	for i := 0; i < len(grid); i++ {
 		for j := 0; j < len(grid[i]); j++ {
@@ -52,8 +34,23 @@ func main() {
 			}
 		}
 	}
+	// printGrid(grid)
+	return splitCount
+}
 
-	printGrid(grid)
+func main() {
+    data, err := os.ReadFile("inputs/day07.txt")
+    if err != nil {
+        fmt.Println("Error reading file:", err)
+        return
+    }
 
-	fmt.Println("part1:", splitCount)
+	lines := strings.Split(string(data), "\n")
+
+	grid := make([][]rune, len(lines))
+	for i, line := range lines {
+		grid[i] = []rune(line)
+	}
+
+	fmt.Println("part1:", countSplit(grid))
 }
