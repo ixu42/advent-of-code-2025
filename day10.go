@@ -4,6 +4,7 @@ import (
 	"os"
 	"log"
 	"bufio"
+	"io"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -71,23 +72,21 @@ func parseLine(line string) *machine {
 	return m
 }
 
-func pressButton(state []int, button []int) {
+func pressButtonToToggle(state []int, button []int) {
 	for _, idx := range button {
 		state[idx] ^= 1 // toggle 0->1 or 1->0
 	}
 }
 
-func main() {
-	file, err := os.Open("inputs/day10.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
+// func pressButtonToIncrement(counters []int, button []int) {
+// 	for _, idx := range button {
+// 		counters[idx]++
+// 	}
+// }
 
-	scanner := bufio.NewScanner(file)
-
-	// part1
+func solvePart1(file *os.File) int {
 	res := 0
+	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
@@ -114,7 +113,7 @@ func main() {
 			for i := 0; i < nButtons; i++ {
 				// check if button i is pressed
 				if (mask >> i) & 1 == 1 {
-					pressButton(state, machine.buttons[i])
+					pressButtonToToggle(state, machine.buttons[i])
 					pressCount++
 				}
 			}
@@ -138,5 +137,38 @@ func main() {
 		log.Fatal("input error:", err)
 	}
 
-	fmt.Println("part1:", res)
+	return res
+}
+
+func main() {
+	file, err := os.Open("inputs/test.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	// fmt.Println("part1:", solvePart1(file))
+
+	// part2
+	file.Seek(0, io.SeekStart) // reset file pointer to beginning
+	scanner := bufio.NewScanner(file)
+	res := 0
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
+		}
+
+		machine := parseLine(line)
+
+		fmt.Printf("%+v\n", machine)
+
+		// todo
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal("input error:", err)
+	}
+
+	fmt.Println("part2:", res)
 }
