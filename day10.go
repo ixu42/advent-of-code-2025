@@ -38,6 +38,15 @@ func parseInts(s string) []int {
 	return nums
 }
 
+func parseButtons (m *machine, line string) {
+	buttonMatches := buttonRe.FindAllStringSubmatch(line, -1)
+	m.buttons = make([][]int, 0, len(buttonMatches))
+	for _, wm := range buttonMatches {
+		nums := parseInts(wm[1])
+		m.buttons = append(m.buttons, nums)
+	}
+}
+
 func parseTargetsAndButtonsPart1(line string) *machine {
 	m := &machine{}
 
@@ -55,12 +64,7 @@ func parseTargetsAndButtonsPart1(line string) *machine {
 		log.Fatal("invalid or missing target state")
 	}
 
-	buttonMatches := buttonRe.FindAllStringSubmatch(line, -1)
-	m.buttons = make([][]int, 0, len(buttonMatches))
-	for _, wm := range buttonMatches {
-		nums := parseInts(wm[1])
-		m.buttons = append(m.buttons, nums)
-	}
+	parseButtons(m, line)
 
 	return m
 }
@@ -74,11 +78,7 @@ func parseTargetsAndButtonsPart2(line string) *machine {
 		log.Fatal("invalid or missing joltage requirements")
 	}
 
-	buttonMatches := buttonRe.FindAllStringSubmatch(line, -1)
-	for _, wm := range buttonMatches {
-		nums := parseInts(wm[1])
-		m.buttons = append(m.buttons, nums)
-	}
+	parseButtons(m, line)
 
 	return m
 }
@@ -170,9 +170,9 @@ func main() {
 			continue
 		}
 
-		// machine := parseTargetsAndButtonsPart2(line)
+		machine := parseTargetsAndButtonsPart2(line)
 
-		// fmt.Printf("%+v\n", machine)
+		fmt.Printf("%+v\n", machine)
 
 		// todo
 	}
