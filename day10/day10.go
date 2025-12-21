@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"github.com/draffensperger/golp"
 )
 
 type machine struct {
@@ -89,12 +90,6 @@ func pressButtonToToggle(state []int, button []int) {
 	}
 }
 
-func pressButtonToIncrement(counters []int, button []int) {
-	for _, idx := range button {
-		counters[idx]++
-	}
-}
-
 func solvePart1(file *os.File) int {
 	res := 0
 	scanner := bufio.NewScanner(file)
@@ -105,7 +100,6 @@ func solvePart1(file *os.File) int {
 		}
 
 		machine := parseTargetsAndButtonsPart1(line)
-
 		// fmt.Printf("%+v\n", machine)
 
 		nButtons := len(machine.buttons)
@@ -151,16 +145,53 @@ func solvePart1(file *os.File) int {
 	return res
 }
 
-func main() {
-	file, err := os.Open("inputs/test.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
+// integer linear programming
+func minPressesILP(machine *machine) int {
+	nButtons := len(machine.buttons)
+    nCounters := len(machine.target)
 
-	fmt.Println("part1:", solvePart1(file))
+    // constraints/rows = counters, columns = buttons
+    lp := golp.NewLP(0, nButtons)
 
-	// part2
+    // build constraints
+    for i := 0; i < nCounters; i++ {
+        row := make([]float64, nButtons)
+        for j := 0; j < nButtons; j++ {
+            for _, idx := range machine.buttons[j] {
+                if idx == i {
+                    row[j] = 1 // set coefficient
+                }
+            }
+        }
+        lp.AddConstraint(row, golp.EQ, float64(machine.target[i]))
+    }
+
+    // objective: minimize total button presses
+    obj := make([]float64, nButtons)
+    for j := 0; j < nButtons; j++ {
+        obj[j] = 1
+        // mark variable j as integer
+        lp.SetInt(j, true)
+    }
+    lp.SetObjFn(obj)
+    // default is minimize; no need to call SetMaximize
+
+    // solve
+    sol := lp.Solve()
+    if sol != golp.OPTIMAL {
+        return -1
+    }
+
+    // sum rounded results
+    vars := lp.Variables()
+    total := 0
+    for _, v := range vars {
+        total += int(v + 0.5) // round to nearest int
+    }
+    return total
+}
+
+func solvePart2(file *os.File) int {
 	file.Seek(0, io.SeekStart) // reset file pointer to beginning
 	scanner := bufio.NewScanner(file)
 	res := 0
@@ -171,15 +202,34 @@ func main() {
 		}
 
 		machine := parseTargetsAndButtonsPart2(line)
+		// fmt.Printf("%+v\n", machine)
 
-		fmt.Printf("%+v\n", machine)
+		minPresses := minPressesILP(machine)
 
-		// todo
+		res += minPresses
 	}
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal("input error:", err)
 	}
 
+	return res
+}
+
+func main() {
+	file, err := os.Open("../inputs/day10.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	// part1
+	fmt.Println("part1:", solvePart1(file))
+
+	// part2
+	res := solvePart2(file)
+	if res < 0 {
+		log.Fatal("no solution found for part2")
+	}
 	fmt.Println("part2:", res)
 }
